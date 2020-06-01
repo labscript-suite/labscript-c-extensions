@@ -14,7 +14,10 @@ VERSION_SCHEME = {
 
 
 EXT_MODULES = [
-    Extension("labscript_c_extensions.runviewer.resample", sources=[os.path.join("src", "runviewer", "resample.pyx")])
+    Extension(
+        "labscript_c_extensions.runviewer.resample",
+        sources=[os.path.join("src", "runviewer", "resample.pyx")],
+    )
 ]
 
 setup(
