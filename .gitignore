@@ -127,3 +127,13 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Editors
+.vscode/
+
+# conda build results
+conda_build/
+conda_packages/
+
+# .c files produced by cython
+src/runviewer/resample.c
