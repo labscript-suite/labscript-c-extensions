@@ -135,7 +135,7 @@ jobs:
         shell: cmd /C CALL {0}
         run: |
           conda install -c labscript-suite setuptools-conda && ^
-          setuptools-conda build %CONDA_BUILD_ARGS% .
+          setuptools-conda build %CONDA_BUILD_ARGS% --croot ${{ runner.temp }}\cb .
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
