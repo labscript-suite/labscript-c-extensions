@@ -11,7 +11,7 @@ on:
 
 defaults:
   run:
-    shell: bash
+    shell: bash -l {0}
 
 env:
   PACKAGE_NAME: labscript-c-extensions
@@ -109,7 +109,9 @@ jobs:
           echo "CONDA_BUILD_ARGS=$CONDA_BUILD_ARGS" >> $GITHUB_ENV
 
       - name: Install Miniconda
-        uses: conda-incubator/setup-miniconda@v2
+        # 2.0.1 until https://github.com/conda-incubator/setup-miniconda/pull/189 merged
+        # and released. Then can change to v2
+        uses: conda-incubator/setup-miniconda@v2.0.1
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python }}
@@ -124,7 +126,6 @@ jobs:
 
       - name: Conda package (Unix)
         if: runner.os != 'Windows'
-        shell: bash -l {0}
         run: |
           conda install -c labscript-suite setuptools-conda
           setuptools-conda build $CONDA_BUILD_ARGS .
@@ -237,19 +238,19 @@ jobs:
           user: __token__
           password: ${{ secrets.pypi }}
 
-      - name: Install Miniconda and cloud client
-        run: |
-          curl -LO https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh 
-          bash Miniconda3-latest-Linux-x86_64.sh -b -p .miniconda
-          source .miniconda/etc/profile.d/conda.sh
-          conda activate
-          conda install anaconda-client
+      - name: Install Miniconda
+        # 2.0.1 until https://github.com/conda-incubator/setup-miniconda/pull/189 merged
+        # and released. Then can change to v2
+        uses: conda-incubator/setup-miniconda@v2.0.1
+        with:
+          auto-update-conda: true
+
+      - name: Install Anaconda cloud client
+        run: conda install anaconda-client
 
       - name: Publish to Anaconda test label
         if: github.event.ref_type != 'tag'
         run: |
-          source .miniconda/etc/profile.d/conda.sh
-          conda activate
           anaconda \
             --token ${{ secrets.ANACONDA_API_TOKEN }} \
             upload \
@@ -260,8 +261,6 @@ jobs:
       - name: Publish to Anaconda main label
         if: github.event.ref_type == 'tag'
         run: |
-          source .miniconda/etc/profile.d/conda.sh
-          conda activate
           anaconda \
             --token ${{ secrets.ANACONDA_API_TOKEN }} \
             upload \
