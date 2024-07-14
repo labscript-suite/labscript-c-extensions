@@ -34,36 +34,42 @@ jobs:
     name: Build
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
+          - { os: ubuntu-latest,   python: '3.12',  arch: x64, conda: true}
           - { os: ubuntu-latest,   python: '3.11',  arch: x64, conda: true}
           - { os: ubuntu-latest,   python: '3.10',  arch: x64, conda: true }
           - { os: ubuntu-latest,   python: '3.9',  arch: x64, conda: true }
           - { os: ubuntu-latest,   python: '3.8',  arch: x64, conda: true }
-          - { os: ubuntu-latest,   python: '3.7',  arch: x64, conda: true }
 
-          - { os: macos-11,    python: '3.11',  arch: x64, conda: true }
-          - { os: macos-11,    python: '3.10',  arch: x64, conda: true }
-          - { os: macos-11,    python: '3.9',  arch: x64, conda: true }
-          - { os: macos-11,    python: '3.8',  arch: x64, conda: true }
-          - { os: macos-11,    python: '3.7',  arch: x64, conda: true }
+          - { os: macos-13,    python: '3.12',  arch: x64, conda: true }
+          - { os: macos-13,    python: '3.11',  arch: x64, conda: true }
+          - { os: macos-13,    python: '3.10',  arch: x64, conda: true }
+          - { os: macos-13,    python: '3.9',  arch: x64, conda: true }
+          - { os: macos-13,    python: '3.8',  arch: x64, conda: true }
 
+          - { os: macos-latest,    python: '3.12',  arch: arm64, conda: true }
+          - { os: macos-latest,    python: '3.11',  arch: arm64, conda: true }
+          - { os: macos-latest,    python: '3.10',  arch: arm64, conda: true }
+          - { os: macos-latest,    python: '3.9',  arch: arm64, conda: true }
+
+          - { os: windows-latest,  python: '3.12',  arch: x64, conda: true }
           - { os: windows-latest,  python: '3.11',  arch: x64, conda: true }
           - { os: windows-latest,  python: '3.10',  arch: x64, conda: true }
           - { os: windows-latest,  python: '3.9',  arch: x64, conda: true }
           - { os: windows-latest,  python: '3.8',  arch: x64, conda: true }
-          - { os: windows-latest,  python: '3.7',  arch: x64, conda: true }
 
+          - { os: windows-latest,  python: '3.12',  arch: x86, conda: false } # conda not yet available
           - { os: windows-latest,  python: '3.11',  arch: x86, conda: false } # conda not yet available
           - { os: windows-latest,  python: '3.10',  arch: x86, conda: true }
           - { os: windows-latest,  python: '3.9',  arch: x86, conda: true }
           - { os: windows-latest,  python: '3.8',  arch: x86, conda: true }
-          - { os: windows-latest,  python: '3.7',  arch: x86, conda: true }
 
     if: github.repository == 'labscript-suite/labscript-c-extensions' && (github.event_name != 'create' || github.event.ref_type != 'branch')
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -72,7 +78,7 @@ jobs:
         run: git tag -d $(git tag --points-at HEAD)
 
       - name: Install Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
           architecture: ${{ matrix.arch }}
@@ -92,9 +98,9 @@ jobs:
 
       - name: Upload Artifact
         if: strategy.job-index == 0 || (env.PURE == 'false' && runner.os != 'Linux')
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: dist
+          name: dist-${{ matrix.os }}_${{ matrix.arch }}-py${{ matrix.python}}
           path: ./dist
 
       - name: Set Variables for Conda Build
@@ -110,18 +116,12 @@ jobs:
 
       - name: Install Miniconda
         if: matrix.conda
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python }}
           architecture: ${{ matrix.arch }}
           miniconda-version: "latest"
-
-      - name: Workaround conda-build incompatibility with xcode 12+
-        if: runner.os == 'macOS'
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: 11.7
 
       - name: Conda package (Unix)
         if: (matrix.conda && runner.os != 'Windows')
@@ -139,9 +139,9 @@ jobs:
 
       - name: Upload Artifact
         if: matrix.conda
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: conda_packages
+          name: conda_packages-${{ matrix.os }}_${{ matrix.arch }}-py${{ matrix.python}}
           path: ./conda_packages
 
 
@@ -152,7 +152,7 @@ jobs:
     steps:
       - name: Checkout
         if: env.PURE == 'false'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -162,14 +162,14 @@ jobs:
 
       - name: Build Manylinux Wheels
         if: env.PURE == 'false'
-        uses: RalfG/python-wheels-manylinux-build@v0.4.2
+        uses: RalfG/python-wheels-manylinux-build@v0.7.1
         with:
           python-versions: 'cp37-cp37m cp38-cp38 cp39-cp39 cp310-cp310 cp311-cp311'
           pre-build-command: 'git config --global --add safe.directory "*"'
 
       - name: Upload Artifact
         if: env.PURE == 'false'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/*manylinux*.whl
@@ -180,17 +180,19 @@ jobs:
     needs: [build, manylinux]
     steps:
 
-      - name: Download Artifact
-        uses: actions/download-artifact@v3
+      - name: Download Wheels and Source
+        uses: actions/download-artifact@v4
         with:
-          name: dist
+          pattern: dist*
           path: ./dist
+          merge-multiple: true
 
-      - name: Download Artifact
-        uses: actions/download-artifact@v3
+      - name: Download Conda Packages
+        uses: actions/download-artifact@v4
         with:
-          name: conda_packages
+          pattern: conda_packages-*
           path: ./conda_packages
+          merge-multiple: true
 
       - name: Get Version Number
         if: github.event.ref_type == 'tag'
@@ -225,7 +227,7 @@ jobs:
           password: ${{ secrets.pypi }}
 
       - name: Install Miniconda
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
 
