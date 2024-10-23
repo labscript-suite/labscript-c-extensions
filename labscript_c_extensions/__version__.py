@@ -21,7 +21,7 @@ if (root / '.git').is_dir():
     try:
         from setuptools_scm import get_version
         VERSION_SCHEME = {
-            "version_scheme": "release-branch-semver",
+            "version_scheme": "guess-next-dev",
             "local_scheme": "node-and-date",
         }
         scm_version = get_version(root, **VERSION_SCHEME)
