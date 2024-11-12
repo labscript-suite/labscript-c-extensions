@@ -104,13 +104,15 @@ jobs:
           path: ./dist
 
       - name: Set Variables for Conda Build
+        # build conda package from wheel
+        # avoids conda build issues on github osx-x64 and win runners
         if: matrix.conda
         shell: bash
         run: |
           if [ $NOARCH == true ]; then
               CONDA_BUILD_ARGS="--noarch"
           else
-              CONDA_BUILD_ARGS=""
+              CONDA_BUILD_ARGS="--from-wheel"
           fi
           echo "CONDA_BUILD_ARGS=$CONDA_BUILD_ARGS" >> $GITHUB_ENV
 
