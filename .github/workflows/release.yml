@@ -10,7 +10,7 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+*'
 
 env:
-  PACKAGE_NAME: labscript-c-extensions
+  PACKAGE_NAME: labscript_c_extensions
   ANACONDA_USER: labscript-suite
 
   # Configuration for a package with compiled extensions:
