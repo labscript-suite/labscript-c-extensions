@@ -50,7 +50,7 @@ jobs:
       - name: Configure workflow
         id: config
         run: |
-          pip install ci-helper
+          pip install ci-helper cython
 
           # Load repo-specific variables and overrides:
           VARS_FILE=".github/workflows/release-vars.sh"
