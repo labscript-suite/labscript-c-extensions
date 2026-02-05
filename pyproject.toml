@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=64", "setuptools_scm>=8", "cython",
+requires = ["setuptools>=74.1.0", "setuptools_scm>=8", "cython",
             "numpy>=2.0,<3; python_version>'3.8'"]
 build-backend = "setuptools.build_meta"
 
@@ -10,6 +10,9 @@ local_scheme = "no-local-version"
 [tool.setuptools]
 zip-safe = false
 include-package-data = true
+ext-modules = [
+    {name = "labscript_c_extensions.runviewer.resample", sources = ["src/runviewer/resample.pyx"]}
+]
 
 [tool.setuptools.packages]
 find = {namespaces = false}
