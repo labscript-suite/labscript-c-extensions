@@ -10,7 +10,7 @@ on:
 
 env:
   OS_LIST_UBUNTU: '["ubuntu-latest"]'
-  OS_LIST_ALL: '["ubuntu-latest", "windows-latest", "macos-latest", "macos-13"]'
+  OS_LIST_ALL: '["ubuntu-latest", "windows-latest", "macos-latest", "macos-15-intel"]'
 
 
 jobs:
@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -43,7 +43,7 @@ jobs:
         run: git tag -d $(git tag --points-at HEAD)
 
       - name: Install Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.x'
 
@@ -222,7 +222,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -231,7 +231,7 @@ jobs:
         run: git tag -d $(git tag --points-at HEAD)
 
       - name: Install Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.DEFAULT_PYTHON }}
 
@@ -252,7 +252,7 @@ jobs:
 
       - name: Upload artifact
         if: env.PURE == 'false' || strategy.job-index == 0
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: dist-${{ matrix.os }}
           path: ./dist
@@ -264,7 +264,7 @@ jobs:
           miniforge-version: "latest"
           auto-update-conda: true
           conda-remove-defaults: true
-          auto-activate-base: true
+          auto-activate: true
           activate-environment: ""
 
       - name: Conda package
@@ -274,11 +274,11 @@ jobs:
             # Short path to minimise odds of hitting Windows max path length
             CONDA_BUILD_ARGS+=" --croot ${{ runner.temp }}\cb"
           fi
-          conda install -c labscript-suite setuptools-conda "conda-build<25"
+          conda install -c labscript-suite setuptools-conda
           setuptools-conda build $CONDA_BUILD_ARGS .
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: conda_packages-${{ matrix.os }}
           path: ./conda_packages
@@ -298,7 +298,7 @@ jobs:
 
     steps:
       - name: Download Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: dist*
           path: ./dist
@@ -332,7 +332,7 @@ jobs:
 
     steps:
       - name: Download Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: dist*
           path: ./dist
@@ -342,6 +342,8 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
+          verbose: true
+          skip-existing: true
 
 
   pypi-upload:
@@ -360,7 +362,7 @@ jobs:
 
     steps:
       - name: Download Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: dist*
           path: ./dist
@@ -368,6 +370,9 @@ jobs:
 
       - name: Publish on PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          verbose: true
+          skip-existing: true
 
 
   test-anaconda-upload:
@@ -378,7 +383,7 @@ jobs:
 
     steps:
       - name: Download Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: conda_packages-*
           path: ./conda_packages
@@ -390,7 +395,7 @@ jobs:
           miniforge-version: "latest"
           auto-update-conda: true
           conda-remove-defaults: true
-          auto-activate-base: true
+          auto-activate: true
           activate-environment: ""
 
       - name: Install Anaconda cloud client
@@ -417,7 +422,7 @@ jobs:
 
     steps:
       - name: Download Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: conda_packages-*
           path: ./conda_packages
@@ -429,7 +434,7 @@ jobs:
           miniforge-version: "latest"
           auto-update-conda: true
           conda-remove-defaults: true
-          auto-activate-base: true
+          auto-activate: true
           activate-environment: ""
 
       - name: Install Anaconda cloud client
