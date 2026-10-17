@@ -56,14 +56,15 @@ def resample(double [:] x_in, double [:] y_in,
         else:
             i = 0
             j = 1
-            # Until we get to the data, fill the output array with NaNs (which get
-            # ignored when plotted)
-            while x_out[i] < x_in[0]:
+            # Fill the output array with NaNs (which get ignored when plotted) up to
+            # the group of three output points that contains the first data point, so
+            # that the loop below sees every data point in that group:
+            while i + 3 < N_out and x_out[i + 3] <= x_in[0]:
                 y_out[i:i+3] = NAN
                 i += 3
             # If we're some way into the data, we need to skip ahead to where we
             # want to get the first datapoint from:
-            while x_in[j] < x_out[i]:
+            while j < N_in and x_in[j] < x_out[i]:
                 j += 1
 
             # Get values until we get to the end of the data:
