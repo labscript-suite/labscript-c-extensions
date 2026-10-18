@@ -69,9 +69,10 @@ def resample(double [:] x_in, double [:] y_in,
 
             # Get values until we get to the end of the data:
 
-            # Leave one spare for the final data point and one because
-            # stepMode=True requires len(y)=len(x)-1
-            while j < N_in and i < N_out - 2:  
+            # Each pass writes y_out[i], y_out[i + 1] and y_out[i + 2]. One point
+            # must remain for the final data point, and y_out has N_out - 1
+            # elements because stepMode=True requires len(y)=len(x)-1.
+            while j < N_in and i < N_out - 4:
                 # This is 'nearest neighbour on the left' interpolation. It's
                 # what we want if none of the source values checked in the
                 # upcoming loop are used:
@@ -107,7 +108,7 @@ def resample(double [:] x_in, double [:] y_in,
                 i += 1
 
             # Get the last datapoint:
-            if j < N_in:
+            if j < N_in and i < N_out - 1:
                 # If the sample rate of the raw data is low, then the current j
                 # point could be outside the current plot view range If so,
                 # decrease j so that we take a value that is within the plot view
