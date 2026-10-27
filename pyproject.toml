@@ -18,6 +18,13 @@ ext-modules = [
 find = {namespaces = false}
 
 
+[tool.setuptools_conda]
+# Linux conda packages are built with the GCC version that Anaconda's default channels
+# use, c_compiler_version in
+# https://github.com/AnacondaRecipes/aggregate/blob/master/conda_build_config.yaml,
+# so that they install from those channels. Raise this when that version is raised.
+conda_build_config = {c_compiler_version = '14; sys_platform == "linux"', cxx_compiler_version = '14; sys_platform == "linux"'}
+
 [project]
 name = "labscript-c-extensions"
 description = "A module containing C-extensions for the labscript suite"
